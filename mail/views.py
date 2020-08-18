@@ -24,7 +24,7 @@ def index(request):
 @csrf_exempt
 @login_required
 def compose(request):
-
+    print("Compose View Accessed.")
     # Composing a new email must be via POST
     if request.method != "POST":
         return JsonResponse({"error": "POST request required."}, status=400)
@@ -64,10 +64,12 @@ def compose(request):
             body=body,
             read=user == request.user
         )
-        email.save()
+        print("Email Save Disabled.")
+        # email.save()
         for recipient in recipients:
             email.recipients.add(recipient)
-        email.save()
+        print("Email Save Disabled (recipient).")
+        # email.save()
 
     return JsonResponse({"message": "Email sent successfully."}, status=201)
 

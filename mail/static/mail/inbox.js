@@ -20,10 +20,35 @@ function compose_email() {
   document.querySelector('#compose-recipients').value = '';
   document.querySelector('#compose-subject').value = '';
   document.querySelector('#compose-body').value = '';
+
+  document.querySelector('#compose-form').onsubmit = () => {
+
+    console.log('Email Form Inputs:');
+    console.log(document.querySelector('#compose-subject').value);
+
+    fetch('/emails', {
+      method: 'POST',
+      body: JSON.stringify({
+          recipients: 'faye@bebop.com',
+          subject: 'Meeting time',
+          body: 'How about we meet tomorrow at 3pm?'
+      })
+    .then(response => response.json())
+    .then(result => {
+        // Print result
+        console.log(result);
+    });
+    .catch(error => {
+        console.log('Errorplane:', error);
+    });
+    return false;
+  };
+})
+
 }
 
 function load_mailbox(mailbox) {
-  
+
   // Show the mailbox and hide other views
   document.querySelector('#emails-view').style.display = 'block';
   document.querySelector('#compose-view').style.display = 'none';
