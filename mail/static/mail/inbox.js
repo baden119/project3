@@ -17,35 +17,30 @@ function compose_email() {
   document.querySelector('#compose-view').style.display = 'block';
 
   // Clear out composition fields
-  document.querySelector('#compose-recipients').value = '';
-  document.querySelector('#compose-subject').value = '';
-  document.querySelector('#compose-body').value = '';
+  document.querySelector('#compose-recipients').value = 'faye@bebop.com';
+  document.querySelector('#compose-subject').value = 'Big Bounty';
+  document.querySelector('#compose-body').value = 'Atleast 16,000 Woolongs';
 
   document.querySelector('#compose-form').onsubmit = () => {
-
-    console.log('Email Form Inputs:');
-    console.log(document.querySelector('#compose-subject').value);
 
     fetch('/emails', {
       method: 'POST',
       body: JSON.stringify({
-          recipients: 'faye@bebop.com',
-          subject: 'Meeting time',
-          body: 'How about we meet tomorrow at 3pm?'
+          recipients: document.querySelector('#compose-recipients').value,
+          subject: document.querySelector('#compose-subject').value,
+          body: document.querySelector('#compose-body').value
       })
+    })
     .then(response => response.json())
     .then(result => {
         // Print result
         console.log(result);
-    });
-    .catch(error => {
-        console.log('Errorplane:', error);
-    });
+    })
+    load_mailbox('sent')
     return false;
   };
-})
-
 }
+
 
 function load_mailbox(mailbox) {
 
