@@ -52,27 +52,23 @@ def compose(request):
     subject = data.get("subject", "")
     body = data.get("body", "")
 
-    print(subject)
-    print(body)
-    print("Email Save Disabled!")
-
     # Create one email for each recipient, plus sender
     users = set()
     users.add(request.user)
     users.update(recipients)
-    # for user in users:
-    #     email = Email(
-    #         user=user,
-    #         sender=request.user,
-    #         subject=subject,
-    #         body=body,
-    #         read=user == request.user
-    #     )
+    for user in users:
+        email = Email(
+            user=user,
+            sender=request.user,
+            subject=subject,
+            body=body,
+            read=user == request.user
+        )
 
-        # email.save()
-        # for recipient in recipients:
-        #     email.recipients.add(recipient)
-        # email.save()
+        email.save()
+        for recipient in recipients:
+            email.recipients.add(recipient)
+        email.save()
 
     return JsonResponse({"message": "Email sent successfully."}, status=201)
 
@@ -95,6 +91,10 @@ def mailbox(request, mailbox):
         )
     else:
         return JsonResponse({"error": "Invalid mailbox."}, status=400)
+    print("--|||-EMAILS-|||---")
+    for email in emails:
+        print(email.subject)
+        print(email.body)
 
     # Return emails in reverse chronologial order
     emails = emails.order_by("-timestamp").all()
