@@ -94,7 +94,6 @@ def mailbox(request, mailbox):
     print("--|||-EMAILS-|||---")
     for email in emails:
         print(email.subject)
-        print(email.body)
 
     # Return emails in reverse chronologial order
     emails = emails.order_by("-timestamp").all()
