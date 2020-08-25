@@ -10,8 +10,8 @@ document.addEventListener('DOMContentLoaded', function() {
   load_mailbox('inbox');
 });
 
+// Write an email
 function compose_email() {
-
   // Show compose view and hide other views
   document.querySelector('#emails-view').style.display = 'none';
   document.querySelector('#compose-view').style.display = 'block';
@@ -42,20 +42,20 @@ function compose_email() {
   };
 }
 
+// Load a mailbox and display a clickable list of relevant emails
 function load_mailbox(mailbox) {
-  // Show the mailbox and hide other views
+  // Show the requested mailbox and hide other views
   document.querySelector('#emails-view').style.display = 'block';
   document.querySelector('#compose-view').style.display = 'none';
   document.querySelector('#display-view').style.display = 'none';
 
   // Show the mailbox name
-  document.querySelector('#emails-view').innerHTML = "";
   document.querySelector('#emails-view').innerHTML = `<h3>${mailbox.charAt(0).toUpperCase() + mailbox.slice(1)}</h3>`;
-  // Send Ajax request to relevent mailbox
+  // Send Ajax request to requested mailbox
   fetch(`/emails/${mailbox}`)
   .then(response => response.json())
   .then(emails => {
-      // Loop through responses and display pertinent mailbox information using the list_emails function
+      // Loop through Ajax response and list email info using the list_emails function
       // Perhaps this could be streamlined using an anonymous function??
       emails.forEach(email => list_emails(email, mailbox));
   });
@@ -64,14 +64,14 @@ function load_mailbox(mailbox) {
   function list_emails(email, mailbox){
     // Create new mailbox item
     const mailbox_item = document.createElement('div');
-    // Mailbox items have diffrent background colors depending on if they've been read.
+    // Mailbox items have diffrent background colors depending on if the email has been read.
     if (email.read == false){
       mailbox_item.className = 'mailbox_item_unread';
     }
     else{
       mailbox_item.className = 'mailbox_item_read';
     }
-    // Text for the mailbox item from email data
+    // Inputing email data into mailbox item text
     mailbox_item.innerHTML = `<strong>${email.sender}</strong> \u00A0\u00A0\u00A0\u00A0${email.subject} <span style="float:right;">${email.timestamp}</span>`;
 
     // Add mailbox item to DOM
@@ -93,22 +93,23 @@ function display_email(email, mailbox){
   document.querySelector('#emails-view').style.display = 'none';
   document.querySelector('#compose-view').style.display = 'none';
   document.querySelector('#display-view').style.display = 'block';
+  document.querySelector('#archive-button').onclick = () => archiver(email);
+  document.querySelector('#un-archive-button').onclick = () => archiver(email);
+  document.querySelector('#reply-button').onclick = () => reply(email);
 
   // Conditional statements to show/hide Archive and Un-Archive buttons.
   if (mailbox === 'inbox'){
-    document.querySelector('#archive-button').style.display = 'block';
+    document.querySelector('#archive-button').style.display = 'inline-block';
     document.querySelector('#un-archive-button').style.display = 'none';
   }
   else if (mailbox ==='archive'){
     document.querySelector('#archive-button').style.display = 'none';
-    document.querySelector('#un-archive-button').style.display = 'block';
+    document.querySelector('#un-archive-button').style.display = 'inline-block';
   }
   else{
     document.querySelector('#archive-button').style.display = 'none';
     document.querySelector('#un-archive-button').style.display = 'none';
   }
-  document.querySelector('#archive-button').addEventListener('click', () => archiver(email));
-  document.querySelector('#un-archive-button').addEventListener('click', () => archiver(email));
 
   // Populate HTML fields with email data
   document.querySelector('#from-field').innerHTML = `<strong>From:\u00A0</strong>${email.sender}`;
@@ -127,31 +128,66 @@ function display_email(email, mailbox){
 
 };//function(display_email)
 
+// Archive or Un-Archive an email
 function archiver(email){
-  // console.log(email);
-  // console.log(email.id);
+  // Archive email
   if (email.archived == false){
-    // Archive email
     fetch(`/emails/${email.id}`, {
       method: 'PUT',
       body: JSON.stringify({
         archived: true
       })
     })
-    // This started out as "load_mailbox('inbox');" but led to a bug whereby inbox would display
-    // mailbox items two, then three, then four times during testing. Im not sure why.
-  setTimeout(location.reload(), 1000);
-  // load_mailbox('inbox');
+    load_mailbox('inbox');
   }
+  // Un-archive email
   else{
-    // Un-archive email
     fetch(`/emails/${email.id}`, {
       method: 'PUT',
       body: JSON.stringify({
         archived: false
       })
     })
-    setTimeout(location.reload(), 1000);
-  // load_mailbox('inbox');
+    load_mailbox('inbox');
   }
 };
+
+// Reply to an email
+function reply(email){
+  // Show compose view and hide other views
+  document.querySelector('#emails-view').style.display = 'none';
+  document.querySelector('#compose-view').style.display = 'block';
+  document.querySelector('#display-view').style.display = 'none';
+
+  // Populate composition fields with data from original email
+  document.querySelector('#compose-recipients').value = email.sender;
+  document.querySelector('#compose-body').value = `On ${email.timestamp}, ${email.sender} wrote :\n\n"${email.body}"`;
+
+  // From requirements spec "If the subject line already begins with Re: , no need to add it again"
+  if (email.subject.startsWith("Re:")){
+    document.querySelector('#compose-subject').value = email.subject;
+  }
+  else{
+    document.querySelector('#compose-subject').value = `Re: ${email.subject}`;
+  }
+
+  // Send Post request to emails route when form submitted
+  document.querySelector('#compose-form').onsubmit = () => {
+    fetch('/emails', {
+      method: 'POST',
+      body: JSON.stringify({
+          recipients: document.querySelector('#compose-recipients').value,
+          subject: document.querySelector('#compose-subject').value,
+          body: document.querySelector('#compose-body').value
+      })
+    })
+    .then(response => response.json())
+    .then(result => {
+        console.log(result);
+    })
+    // Interval necessary to correctly display newly sent item
+    setTimeout(load_mailbox('sent'), 1000);
+    return false;
+  };
+
+}//function(reply)

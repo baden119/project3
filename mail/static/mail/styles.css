@@ -11,7 +11,7 @@ pre {
 }
 
 .mailbox_item_read{
-  background-color: pink;
+  background-color: lightgrey;
   padding: 10px;
   margin: 10px;
   border: solid 2px black;
@@ -20,7 +20,7 @@ pre {
 
 
 .mailbox_item_unread{
-  background-color: purple;
+  background-color: white;
   padding: 10px;
   margin: 10px;
   border: solid 2px black;
